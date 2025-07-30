@@ -132,18 +132,20 @@ export default function TasksScreen() {
 
         {/* MascotModal (пример, без видеоSource) */}
         <MascotModal
-          isVisible={isMascotModalVisible}
-          onClose={closeModal}
-          imageSources={[
+        isVisible={isMascotModalVisible}
+        onClose={closeModal}
+        imageSources={[
+            require('../../../assets/images/cat1.png'),
             require('../../../assets/images/cat.png'),
             require('../../../assets/images/cat3.png'),
             require('../../../assets/images/cat4.png'),
           ]}
-          title="Растите своего Тошу"
-          description="Когда кладёте деньги в копилку..."
-          onStartPress={() => console.log('Start pressed')}
-          onLinkPress={() => console.log('Link pressed')}
-        />
+        title="Растите своего Тошу"
+        description="Когда кладёте деньги в копилку, пополняется не только она, но и рост Тоши! Регулярно подкармливай копилку и кота Тошу (не могу упридумать)"
+        onStartPress={() => console.log('Start pressed')}
+        onLinkPress={() => console.log('Link pressed')}
+      />
+
       </View>
     </GradientWrapper>
   );

@@ -73,4 +73,8 @@ export const styles = StyleSheet.create({
     fontWeight: '700',
     lineHeight: 26,
   },
+
+  scv: {
+    paddingBottom: 200
+  }
 });
