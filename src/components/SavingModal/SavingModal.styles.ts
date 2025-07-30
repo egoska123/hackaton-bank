@@ -1,0 +1,91 @@
+import { StyleSheet } from 'react-native';
+
+export const styles = StyleSheet.create({
+  modalContainer: {
+    justifyContent: 'flex-end',
+    margin: 0,
+  },
+  modalContent: {
+    height: 717,
+    borderTopLeftRadius: 34,
+    borderTopRightRadius: 34,
+    backgroundColor: '#FFF',
+    padding: 24,
+    alignItems: 'center',
+  },
+  swipeIndicator: {
+    width: 60,
+    height: 7,
+    borderRadius: 34,
+    backgroundColor: '#ECECEC',
+    marginBottom: 16,
+  },
+  image: {
+    height: 248,
+    borderRadius: 13,
+    borderWidth: 1,
+    width: '100%',
+    borderColor: '#DDD',
+    backgroundColor: '#FFF',
+    marginBottom: 20,
+  },
+  caption: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#454545',
+    fontFamily: 'Inter',
+    alignSelf: 'flex-start',
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: '700',
+    color: '#000',
+    fontFamily: 'Inter',
+    alignSelf: 'flex-start',
+    marginTop: 6,
+  },
+  description: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#454545',
+    fontFamily: 'Inter',
+    marginTop: 10,
+    alignSelf: 'flex-start',
+  },
+  greenButton: {
+    width: '100%',
+    height: 71,
+    backgroundColor: '#40A93D',
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  greenButtonText: {
+    color: '#FFF',
+    fontSize: 20,
+    fontWeight: '700',
+    fontFamily: 'Inter',
+  },
+  grayButton: {
+    width: '100%',
+    height: 71,
+    backgroundColor: '#DDD',
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  grayButtonText: {
+    color: '#454545',
+    fontSize: 20,
+    fontWeight: '700',
+    fontFamily: 'Inter',
+  },
+  buttons: {
+    position: 'absolute',
+    bottom: '8%',
+    width: '100%',
+    alignItems: 'center',
+  }
+});
