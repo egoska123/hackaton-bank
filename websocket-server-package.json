@@ -1,0 +1,18 @@
+{
+  "name": "kidbank-websocket-server",
+  "version": "1.0.0",
+  "description": "WebSocket server for KidBank advice notifications",
+  "main": "test-websocket-server.js",
+  "scripts": {
+    "start": "node test-websocket-server.js",
+    "dev": "nodemon test-websocket-server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.8.1",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+} 

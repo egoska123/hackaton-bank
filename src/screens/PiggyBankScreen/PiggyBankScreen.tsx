@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Alert, Linking } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, Alert, Linking, ActivityIndicator } from 'react-native';
+import { observer } from 'mobx-react-lite';
 import Header from '../../components/Header/Header';
 import GradientWrapper from '../../components/GradientWrapper/GradientWrapper';
 import PlusIcon from '../../../assets/icons/PlusIcon';
@@ -10,19 +11,15 @@ import OtherKidsSavingCard from '../../components/OtherKidsSavingCard/OtherKidsS
 import SavingModal from '../../components/SavingModal/SavingModal';
 import AddPiggyBankModal from '../../components/AddPiggyBankModal/AddPiggyBankModal';
 import TopUpPiggyBankModal from '../../components/TopUpPiggyBankModal/TopUpPiggyBankModal';
-import { mockPiggyBanks } from '../../mocks/mockPiggyBanks ';
+import { piggyBankStore } from '../../stores/PiggyBankStore';
+import { PiggyBank } from '../../utils/piggybankApi';
+import ProfileStore from '../../stores/ProfileStore';
 
-export default function PiggyBankScreen() {
+const PiggyBankScreen = observer(() => {
   const [isModalVisible, setModalVisible] = useState(false);
   const [isAddPiggyBankModalVisible, setAddPiggyBankModalVisible] = useState(false);
   const [isTopUpModalVisible, setTopUpModalVisible] = useState(false);
-  const [selectedPiggyBank, setSelectedPiggyBank] = useState<null | {
-    title: string;
-    savedAmount: number;
-    targetAmount: number;
-    imageSource: any;
-  }>(null);
-  const [piggyBanks, setPiggyBanks] = useState(mockPiggyBanks);
+  const [selectedPiggyBank, setSelectedPiggyBank] = useState<PiggyBank | null>(null);
   const [selectedItem, setSelectedItem] = useState<null | {
     title: string;
     price: number;
@@ -30,6 +27,11 @@ export default function PiggyBankScreen() {
     description: string;
     productUrl?: string;
   }>(null);
+
+  // Загружаем копилки при монтировании компонента
+  useEffect(() => {
+    piggyBankStore.loadPiggyBanks();
+  }, []);
 
   const handleLinkPress = async () => {
     console.log('Selected item:', selectedItem);
@@ -60,44 +62,40 @@ export default function PiggyBankScreen() {
     setModalVisible(true);
   };
 
-  const handleAddPiggyBank = (newPiggyBank: {
+  const handleAddPiggyBank = async (newPiggyBank: {
     title: string;
     targetAmount: number;
-    imageSource: any;
+    imageSource?: any;
   }) => {
-    const piggyBankWithDefaults = {
-      ...newPiggyBank,
-      savedAmount: 0, // Начинаем с нуля
-    };
-    setPiggyBanks([...piggyBanks, piggyBankWithDefaults]);
+    try {
+      await piggyBankStore.createPiggyBank({
+        name: newPiggyBank.title,
+        target: newPiggyBank.targetAmount,
+        photoPath: newPiggyBank.imageSource ? '/uploads/defaultPhoto.png' : undefined,
+      });
+      setAddPiggyBankModalVisible(false);
+    } catch (error) {
+      Alert.alert('Ошибка', 'Не удалось создать копилку');
+    }
   };
 
   const handlePlusPress = () => {
     setAddPiggyBankModalVisible(true);
   };
 
-  const handlePiggyBankPress = (piggyBank: {
-    title: string;
-    savedAmount: number;
-    targetAmount: number;
-    imageSource: any;
-  }) => {
+  const handlePiggyBankPress = (piggyBank: PiggyBank) => {
     setSelectedPiggyBank(piggyBank);
     setTopUpModalVisible(true);
   };
 
-  const handleTopUp = (amount: number) => {
+  const handleTopUp = async (amount: number) => {
     if (selectedPiggyBank) {
-      const updatedPiggyBanks = piggyBanks.map(bank => {
-        if (bank.title === selectedPiggyBank.title) {
-          return {
-            ...bank,
-            savedAmount: bank.savedAmount + amount,
-          };
-        }
-        return bank;
-      });
-      setPiggyBanks(updatedPiggyBanks);
+      try {
+        await piggyBankStore.topUpPiggyBank(selectedPiggyBank.id, amount);
+        setTopUpModalVisible(false);
+      } catch (error) {
+        Alert.alert('Ошибка', 'Не удалось пополнить копилку');
+      }
     }
   };
 
@@ -105,8 +103,8 @@ export default function PiggyBankScreen() {
     <GradientWrapper>
       <View style={styles.container}>
         <Header
-          firstName="Никита"
-          lastName="Иванов"
+          firstName={ProfileStore.firstName}
+          lastName={ProfileStore.lastName}
           photoUri="https://example.com/avatar.jpg"
         />
 
@@ -118,16 +116,38 @@ export default function PiggyBankScreen() {
             </TouchableOpacity>
           </View>
 
-          {piggyBanks.map((bank, index) => (
-            <PiggyBankCard
-              key={index}
-              title={bank.title}
-              savedAmount={bank.savedAmount}
-              targetAmount={bank.targetAmount}
-              imageSource={bank.imageSource}
-              onPress={() => handlePiggyBankPress(bank)}
-            />
-          ))}
+          {piggyBankStore.isLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#007AFF" />
+              <Text style={styles.loadingText}>Загрузка копилок...</Text>
+            </View>
+          ) : piggyBankStore.error ? (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{piggyBankStore.error}</Text>
+              <TouchableOpacity 
+                style={styles.retryButton}
+                onPress={() => piggyBankStore.loadPiggyBanks()}
+              >
+                <Text style={styles.retryButtonText}>Повторить</Text>
+              </TouchableOpacity>
+            </View>
+          ) : piggyBankStore.piggyBanks.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>У вас пока нет копилок</Text>
+              <Text style={styles.emptySubtext}>Создайте первую копилку, нажав на +</Text>
+            </View>
+          ) : (
+            piggyBankStore.piggyBanks.map((bank, index) => (
+              <PiggyBankCard
+                key={bank.id}
+                title={bank.name}
+                savedAmount={piggyBankStore.kopeksToRubles(bank.balance)}
+                targetAmount={piggyBankStore.kopeksToRubles(bank.target)}
+                imageSource={require('../../../assets/images/image 23.png')} // Используем дефолтное изображение
+                onPress={() => handlePiggyBankPress(bank)}
+              />
+            ))
+          )}
 
           {mockOtherKidsSaving.map((item, index) => (
             <OtherKidsSavingCard
@@ -172,4 +192,6 @@ export default function PiggyBankScreen() {
       </View>
     </GradientWrapper>
   );
-}
+});
+
+export default PiggyBankScreen;

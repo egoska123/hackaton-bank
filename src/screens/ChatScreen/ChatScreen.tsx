@@ -23,9 +23,14 @@ interface Message {
 
 interface Props {
   onClose: () => void;
+  initialAdvice?: {
+    advice: string;
+    timestamp: string;
+    operation?: 'transaction' | 'history' | 'default';
+  };
 }
 
-const ChatScreen: React.FC<Props> = ({ onClose }) => {
+const ChatScreen: React.FC<Props> = ({ onClose, initialAdvice }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -108,6 +113,19 @@ const ChatScreen: React.FC<Props> = ({ onClose }) => {
   ]);
   const [inputText, setInputText] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
+
+  // Добавляем начальный совет, если он есть
+  useEffect(() => {
+    if (initialAdvice) {
+      const adviceMessage: Message = {
+        id: Date.now().toString(),
+        text: initialAdvice.advice,
+        isUser: false,
+        timestamp: new Date(initialAdvice.timestamp),
+      };
+      setMessages(prev => [...prev, adviceMessage]);
+    }
+  }, [initialAdvice]);
 
   // Автоматические ответы Тоши
   const getToshaResponse = (userMessage: string): string => {

@@ -2,16 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image } from 'react-native';
 import Modal from 'react-native-modal';
 import { styles } from './TopUpPiggyBankModal.styles';
+import { PiggyBank } from '../../utils/piggybankApi';
+import { kopeksToRubles, formatRubles } from '../../utils/currencyUtils';
 
 interface Props {
   isVisible: boolean;
   onClose: () => void;
-  piggyBank: {
-    title: string;
-    savedAmount: number;
-    targetAmount: number;
-    imageSource: any;
-  };
+  piggyBank: PiggyBank;
   onTopUp: (amount: number) => void;
 }
 
@@ -47,7 +44,7 @@ const TopUpPiggyBankModal: React.FC<Props> = ({
     onClose();
   };
 
-  const progress = Math.min(piggyBank.savedAmount / piggyBank.targetAmount, 1);
+  const progress = Math.min(piggyBank.balance / piggyBank.target, 1);
 
   return (
     <Modal
@@ -63,13 +60,13 @@ const TopUpPiggyBankModal: React.FC<Props> = ({
 
         {/* Информация о копилке */}
         <View style={styles.piggyBankInfo}>
-          <Image source={piggyBank.imageSource} style={styles.piggyBankImage} resizeMode="contain" />
+          <Image source={require('../../../assets/images/image 23.png')} style={styles.piggyBankImage} resizeMode="contain" />
           <View style={styles.piggyBankDetails}>
             <Text style={styles.piggyBankLabel}>Копилка</Text>
-            <Text style={styles.piggyBankTitle}>{piggyBank.title}</Text>
+            <Text style={styles.piggyBankTitle}>{piggyBank.name}</Text>
             <Text style={styles.piggyBankAmount}>
-              <Text style={styles.savedAmount}>{piggyBank.savedAmount}</Text> 
-              <Text style={styles.targetAmount}>₽ из {piggyBank.targetAmount} ₽</Text>
+              <Text style={styles.savedAmount}>{kopeksToRubles(piggyBank.balance)}</Text> 
+              <Text style={styles.targetAmount}>{formatRubles(kopeksToRubles(piggyBank.target))}</Text>
             </Text>
             <View style={styles.progressBar}>
               <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
+import { observer } from 'mobx-react-lite';
 import { styles } from './TasksScreen.styles';
 import GrassPlatform from '../../../assets/icons/GrassPlatform';
 import Header from '../../components/Header/Header';
@@ -17,12 +18,20 @@ import MascotModal from '../../components/MascotModal/MascotModal';
 import { mockParentTasks } from '../../mocks/mockParentTasks';
 import { mockSystemTasks } from '../../mocks/mockSystemTasks';
 import { mockCompleteTasks } from '../../mocks/mockCompleteTasks';
+import ProfileStore from '../../stores/ProfileStore';
 
-export default function TasksScreen() {
+const TasksScreen = observer(() => {
   const [isMascotModalVisible, setMascotModalVisible] = useState(false);
   const [isCheckModalVisible, setCheckModalVisible] = useState(false);
   const [selectedTaskText, setSelectedTaskText] = useState<string>('');
-  const [selectedTaskEarn, setSelectedTaskEarn] = useState<number>();
+  const [selectedTaskEarn, setSelectedTaskEarn] = useState<number>(0);
+
+  // Загружаем профиль при монтировании компонента
+  useEffect(() => {
+    if (!ProfileStore.profile) {
+      ProfileStore.fetchProfile();
+    }
+  }, []);
 
   const openModal = () => setMascotModalVisible(true);
   const closeModal = () => setMascotModalVisible(false);
@@ -42,8 +51,8 @@ export default function TasksScreen() {
     <GradientWrapper>
       <View style={styles.container}>
         <Header
-          firstName="Никита"
-          lastName="Иванов"
+          firstName={ProfileStore.firstName}
+          lastName={ProfileStore.lastName}
           photoUri="https://example.com/avatar.jpg"
         />
 
@@ -95,7 +104,7 @@ export default function TasksScreen() {
             <Text style={styles.parentstext}>Список дел</Text>
             <View style={styles.parentsTasksList}>
               {mockSystemTasks.map((task, i) => (
-                <TaskCard key={i} text={task.text} />
+                <TaskCard key={i} text={task.text} earn={0} />
               ))}
             </View>
           </View>
@@ -109,6 +118,7 @@ export default function TasksScreen() {
                   key={i}
                   variant="completed"
                   text={task.text}
+                  earn={0}
                 />
               ))}
             </View>
@@ -121,13 +131,9 @@ export default function TasksScreen() {
           isVisible={isCheckModalVisible}
           onClose={closeCheckModal}
           earn={selectedTaskEarn}
-          imageSource={require('../../../assets/images/cat.png')}
           title={selectedTaskText}
           description={selectedTaskText}
-          onStartPress={() =>
-            console.log('Start task:', selectedTaskText)
-          }
-           onDonePress={handleTaskDone}
+          onDonePress={handleTaskDone}
         />
 
         {/* MascotModal с изображениями маскотов */}
@@ -151,4 +157,6 @@ export default function TasksScreen() {
       </View>
     </GradientWrapper>
   );
-}
+});
+
+export default TasksScreen;
