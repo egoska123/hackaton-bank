@@ -7,6 +7,7 @@ interface PiggyBankCardProps {
   savedAmount: number;
   targetAmount: number;
   imageSource: any; // require('...') или { uri: '...' }
+  onPress?: () => void;
 }
 
 const PiggyBankCard: React.FC<PiggyBankCardProps> = ({
@@ -14,11 +15,12 @@ const PiggyBankCard: React.FC<PiggyBankCardProps> = ({
   savedAmount,
   targetAmount,
   imageSource,
+  onPress,
 }) => {
   const progress = Math.min(savedAmount / targetAmount, 1);
 
   return (
-    <TouchableOpacity activeOpacity={0.6} style={styles.card}>
+    <TouchableOpacity activeOpacity={0.6} style={styles.card} onPress={onPress}>
       <View style={styles.innerContainer}>
         <Image source={imageSource} style={styles.image} resizeMode="contain" />
         <View style={{ flex: 1, marginLeft: 16 }}>

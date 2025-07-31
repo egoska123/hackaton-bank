@@ -8,13 +8,14 @@ interface OtherKidsSavingCardProps {
   price: number;
   imageSource: any;
   description: string;
-  onPress?: (item: { title: string; price: number; imageSource: any; description: string }) => void;
+  productUrl?: string;
+  onPress?: (item: { title: string; price: number; imageSource: any; description: string; productUrl?: string }) => void;
 }
 
-const OtherKidsSavingCard: React.FC<OtherKidsSavingCardProps> = ({ title, price, imageSource, description, onPress }) => {
+const OtherKidsSavingCard: React.FC<OtherKidsSavingCardProps> = ({ title, price, imageSource, description, productUrl, onPress }) => {
   const handlePress = () => {
     if (onPress) {
-      onPress({ title, price, imageSource, description });
+      onPress({ title, price, imageSource, description, productUrl });
     }
   };
 

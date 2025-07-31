@@ -43,6 +43,21 @@ export const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
   },
+  chatButton: {
+    height: 96,
+    paddingHorizontal: 30,
+    paddingVertical: 25,
+    borderRadius: 26,
+    backgroundColor: '#FFF',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  chatText: {
+    color: '#000',
+    fontSize: 20,
+    fontWeight: '700',
+  },
   history: {
     marginTop: 26, 
     paddingHorizontal: 20,

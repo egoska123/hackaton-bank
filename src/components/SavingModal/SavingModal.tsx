@@ -9,6 +9,7 @@ interface Props {
   imageSource: any;
   title: string;
   description: string;
+  productUrl?: string;
   onStartPress?: () => void;
   onLinkPress?: () => void;
 }
@@ -19,6 +20,7 @@ const SavingModal: React.FC<Props> = ({
   imageSource,
   title,
   description,
+  productUrl,
   onStartPress,
   onLinkPress,
 }) => {
@@ -46,7 +48,7 @@ const SavingModal: React.FC<Props> = ({
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.grayButton} onPress={onLinkPress}>
-                 <Text style={styles.grayButtonText}>Ссылка</Text>
+                 <Text style={styles.grayButtonText}>Открыть товар</Text>
             </TouchableOpacity>
         </View>
       </View>

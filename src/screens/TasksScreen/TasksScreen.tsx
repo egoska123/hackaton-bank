@@ -130,8 +130,8 @@ export default function TasksScreen() {
            onDonePress={handleTaskDone}
         />
 
-        {/* MascotModal (пример, без видеоSource) */}
-        <MascotModal
+        {/* MascotModal с изображениями маскотов */}
+       <MascotModal
         isVisible={isMascotModalVisible}
         onClose={closeModal}
         imageSources={[
@@ -145,6 +145,8 @@ export default function TasksScreen() {
         onStartPress={() => console.log('Start pressed')}
         onLinkPress={() => console.log('Link pressed')}
       />
+
+
 
       </View>
     </GradientWrapper>

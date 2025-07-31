@@ -12,8 +12,14 @@ import ArrowLeftIcon from '../../../assets/icons/ArrowLeftIcon';
 import ArrowRightIcon from '../../../assets/icons/ArrowRightIcon';
 import ProfileStore from '../../stores/ProfileStore';
 import TransactionStore from '../../stores/TransactionStore';
+import ChatIcon from '../../../assets/icons/ChatIcon';
 
-const MainScreen = observer(() => {
+interface Props {
+  navigation: any;
+  openChat?: () => void;
+}
+
+const MainScreen = observer(({ navigation, openChat }: Props) => {
   const [showHistory, setShowHistory] = useState(false);
   
 
@@ -137,6 +143,14 @@ const MainScreen = observer(() => {
               <TouchableOpacity style={styles.sendButton}>
                 <Text style={styles.sendText}>Отправить</Text>
                 <ArrowRightIcon />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.chatButton}
+                onPress={openChat}
+              >
+                <Text style={styles.chatText}>Чат с Тошей</Text>
+                <ChatIcon width={20} height={21} />
               </TouchableOpacity>
 
               <TouchableOpacity
