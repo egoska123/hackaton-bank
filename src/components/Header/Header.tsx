@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image } from 'react-native';
+import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { styles } from './Header.styles';
 import QrcodeIcon from '../../../assets/icons/QrcodeIcon';
 import SettingsIcon from '../../../assets/icons/SettingsIcon';
@@ -9,9 +9,10 @@ interface Props {
   firstName: string;
   lastName: string;
   photoUri?: string;
+  onBackToRoleSelection?: () => void;
 }
 
-const Header: React.FC<Props> = ({ firstName, lastName, photoUri }) => {
+const Header: React.FC<Props> = ({ firstName, lastName, photoUri, onBackToRoleSelection }) => {
   return (
     <View style={styles.container}>
       <View style={styles.leftSection}>
@@ -27,7 +28,17 @@ const Header: React.FC<Props> = ({ firstName, lastName, photoUri }) => {
       </View>
       <View style={styles.rightSection}>
         <QrcodeIcon />
-        <SettingsIcon/>
+        {onBackToRoleSelection ? (
+          <TouchableOpacity 
+            style={styles.settingsButton}
+            onPress={onBackToRoleSelection}
+            activeOpacity={0.7}
+          >
+            <SettingsIcon/>
+          </TouchableOpacity>
+        ) : (
+          <SettingsIcon/>
+        )}
       </View>
     </View>
   );

@@ -13,7 +13,11 @@ import { adviceStore } from '../stores/AdviceStore';
 
 const Tab = createBottomTabNavigator();
 
-const Navigator = observer(() => {
+interface NavigatorProps {
+  onBackToRoleSelection?: () => void;
+}
+
+const Navigator = observer(({ onBackToRoleSelection }: NavigatorProps) => {
   const [isChatVisible, setIsChatVisible] = useState(false);
 
   const openChat = () => setIsChatVisible(true);
@@ -37,10 +41,14 @@ const Navigator = observer(() => {
             tabBar={(props) => <CustomTabBar {...props} />}
           >
             <Tab.Screen name="Главная">
-              {(props) => <MainScreen {...props} openChat={openChat} />}
+              {(props) => <MainScreen {...props} openChat={openChat} onBackToRoleSelection={onBackToRoleSelection} />}
             </Tab.Screen>
-            <Tab.Screen name="Копилка" component={PiggyBankScreen} />
-            <Tab.Screen name="Дела" component={TasksScreen} />
+            <Tab.Screen name="Копилка">
+              {(props) => <PiggyBankScreen {...props} onBackToRoleSelection={onBackToRoleSelection} />}
+            </Tab.Screen>
+            <Tab.Screen name="Дела">
+              {(props) => <TasksScreen {...props} onBackToRoleSelection={onBackToRoleSelection} />}
+            </Tab.Screen>
           </Tab.Navigator>
         ) : (
           <ChatScreen 

@@ -17,9 +17,10 @@ import ChatIcon from '../../../assets/icons/ChatIcon';
 interface Props {
   navigation: any;
   openChat?: () => void;
+  onBackToRoleSelection?: () => void;
 }
 
-const MainScreen = observer(({ navigation, openChat }: Props) => {
+const MainScreen = observer(({ navigation, openChat, onBackToRoleSelection }: Props) => {
   const [showHistory, setShowHistory] = useState(false);
   
 
@@ -125,6 +126,7 @@ const MainScreen = observer(({ navigation, openChat }: Props) => {
           firstName={ProfileStore.firstName}
           lastName={ProfileStore.lastName}
           photoUri="https://example.com/avatar.jpg"
+          onBackToRoleSelection={onBackToRoleSelection}
         />
 
         {!showHistory ? (

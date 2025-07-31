@@ -20,7 +20,11 @@ import { mockSystemTasks } from '../../mocks/mockSystemTasks';
 import { mockCompleteTasks } from '../../mocks/mockCompleteTasks';
 import ProfileStore from '../../stores/ProfileStore';
 
-const TasksScreen = observer(() => {
+interface TasksScreenProps {
+  onBackToRoleSelection?: () => void;
+}
+
+const TasksScreen = observer(({ onBackToRoleSelection }: TasksScreenProps) => {
   const [isMascotModalVisible, setMascotModalVisible] = useState(false);
   const [isCheckModalVisible, setCheckModalVisible] = useState(false);
   const [selectedTaskText, setSelectedTaskText] = useState<string>('');
@@ -54,6 +58,7 @@ const TasksScreen = observer(() => {
           firstName={ProfileStore.firstName}
           lastName={ProfileStore.lastName}
           photoUri="https://example.com/avatar.jpg"
+          onBackToRoleSelection={onBackToRoleSelection}
         />
 
         <ScrollView contentContainerStyle={styles.content}>
