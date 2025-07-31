@@ -28,7 +28,7 @@ const OtherKidsSavingCard: React.FC<OtherKidsSavingCardProps> = ({ title, price,
 
         <View style={styles.infoCont}>
           <View style={styles.info}>
-            <Text style={styles.caption}>Что копят другие дети?</Text>
+            <Text style={styles.caption}>На что копят другие дети?</Text>
             <Text style={styles.title} numberOfLines={1}>{title}</Text>
           </View>
 

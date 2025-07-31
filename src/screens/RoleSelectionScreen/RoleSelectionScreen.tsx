@@ -1,12 +1,40 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, TextInput, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { setAuthToken, getAuthToken } from '../../utils/api';
 
 interface Props {
   onRoleSelect: (role: 'child' | 'parent') => void;
 }
 
 const RoleSelectionScreen: React.FC<Props> = ({ onRoleSelect }) => {
+  const [jwtToken, setJwtToken] = useState('');
+
+  // Загружаем сохраненный токен при монтировании компонента
+  useEffect(() => {
+    const savedToken = getAuthToken();
+    if (savedToken) {
+      setJwtToken(savedToken);
+    }
+  }, []);
+
+  const handleSaveToken = () => {
+    if (jwtToken.trim()) {
+      setAuthToken(jwtToken.trim());
+      Alert.alert('Успех', 'JWT токен сохранен!');
+    } else {
+      Alert.alert('Ошибка', 'Пожалуйста, введите JWT токен');
+    }
+  };
+
+  const handleRoleSelect = (role: 'child' | 'parent') => {
+    if (!jwtToken.trim()) {
+      Alert.alert('Внимание', 'Пожалуйста, сначала введите JWT токен');
+      return;
+    }
+    onRoleSelect(role);
+  };
+
   return (
     <LinearGradient
       colors={['#F4CF49', '#40A93D']}
@@ -18,10 +46,32 @@ const RoleSelectionScreen: React.FC<Props> = ({ onRoleSelect }) => {
         <Text style={styles.title}>Выберите роль</Text>
         <Text style={styles.subtitle}>Кто будет использовать приложение?</Text>
         
+        {/* Поле для ввода JWT токена */}
+        <View style={styles.tokenContainer}>
+          <Text style={styles.tokenLabel}>JWT Токен:</Text>
+          <TextInput
+            style={styles.tokenInput}
+            value={jwtToken}
+            onChangeText={setJwtToken}
+            placeholder="Введите JWT токен..."
+            placeholderTextColor="#999999"
+            multiline
+            numberOfLines={3}
+            textAlignVertical="top"
+          />
+          <TouchableOpacity 
+            style={styles.saveTokenButton}
+            onPress={handleSaveToken}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.saveTokenButtonText}>Сохранить токен</Text>
+          </TouchableOpacity>
+        </View>
+        
         <View style={styles.buttonsContainer}>
           <TouchableOpacity 
             style={styles.roleButton}
-            onPress={() => onRoleSelect('child')}
+            onPress={() => handleRoleSelect('child')}
             activeOpacity={0.8}
           >
             <View style={styles.buttonContent}>
@@ -34,7 +84,7 @@ const RoleSelectionScreen: React.FC<Props> = ({ onRoleSelect }) => {
 
           <TouchableOpacity 
             style={styles.roleButton}
-            onPress={() => onRoleSelect('parent')}
+            onPress={() => handleRoleSelect('parent')}
             activeOpacity={0.8}
           >
             <View style={styles.buttonContent}>
@@ -73,8 +123,54 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: '#FFFFFF',
     textAlign: 'center',
-    marginBottom: 60,
+    marginBottom: 30,
     opacity: 0.9,
+    fontFamily: 'Inter',
+  },
+  tokenContainer: {
+    width: '100%',
+    marginBottom: 30,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  tokenLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333333',
+    marginBottom: 8,
+    fontFamily: 'Inter',
+  },
+  tokenInput: {
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 14,
+    color: '#333333',
+    backgroundColor: '#F8F8F8',
+    fontFamily: 'Inter',
+    minHeight: 80,
+  },
+  saveTokenButton: {
+    backgroundColor: '#40A93D',
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 12,
+    alignItems: 'center',
+  },
+  saveTokenButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
     fontFamily: 'Inter',
   },
   buttonsContainer: {

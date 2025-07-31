@@ -44,15 +44,41 @@ apiClient.interceptors.response.use(
   }
 );
 
-// Временное хранилище токена (позже можно заменить на AsyncStorage или другое решение)
-let authToken: string | null = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjUzNWYxMmRhLTgxOGQtNDgyNy1iN2NlLWJlZjE1M2Y0ZmRkZiIsImlhdCI6MTc1Mzg5NjU5NywiZXhwIjoxNzU0NTAxMzk3fQ.kuEmb7gAauDRt7AuQEj54J0gfaiPUkv6m3h6-M4PsDM';
+// Хранилище токена в localStorage
+const TOKEN_KEY = 'auth_token';
 
-export const getAuthToken = (): string | null => authToken;
+export const getAuthToken = (): string | null => {
+  try {
+    // Для React Native используем временное решение
+    // В реальном приложении лучше использовать AsyncStorage
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return window.localStorage.getItem(TOKEN_KEY);
+    }
+    // Fallback для React Native
+    return global.authToken || null;
+  } catch (error) {
+    console.error('Error getting auth token:', error);
+    return null;
+  }
+};
 
 export const setAuthToken = (token: string | null): void => {
-  authToken = token;
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      if (token) {
+        window.localStorage.setItem(TOKEN_KEY, token);
+      } else {
+        window.localStorage.removeItem(TOKEN_KEY);
+      }
+    }
+    // Fallback для React Native
+    global.authToken = token;
+    console.log('Auth token saved:', token ? 'Token saved' : 'Token cleared');
+  } catch (error) {
+    console.error('Error setting auth token:', error);
+  }
 };
 
 export const clearAuthToken = (): void => {
-  authToken = null;
+  setAuthToken(null);
 }; 
