@@ -1,0 +1,138 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+provider = "prisma-client-js"
+output = "../../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CHILD
+  PARENT
+  ADMIN
+}
+
+enum MissionStatus {
+  PENDING     // ещё копим
+  COMPLETED   // цель достигнута
+  EXPIRED     // просрочена/отменена
+}
+
+enum ReportType {
+  TEXT
+  PHOTO
+}
+
+enum LimitType {
+  TRANSFER      // переводы
+  WITHDRAWAL    // снятие
+  CARD_PURCHASE // покупки с карты
+}
+
+
+model Profile {
+  id       String @id @default(uuid())
+  userId   String @unique
+  fullName String
+  user     User   @relation(fields: [userId], references: [id])
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      Role     // enum: CHILD, PARENT, ADMIN
+  profile   Profile?
+  children  Child[]  @relation("ParentChildren")
+  missionsCreated Mission[] @relation("ParentMissions")
+  aiResponse AiResponse?
+}
+
+model Child {
+  id          String    @id @default(uuid())
+  name        String
+  balance     Int       @default(0) // копейки
+  missions    Mission[]
+  parentId    String
+  parent      User      @relation("ParentChildren", fields: [parentId], references: [id])
+  transactions Transaction[]
+  piggyBanks   PiggyBank[]
+  limits       Limit[]
+}
+
+model PiggyBank {
+  id         String   @id @default(uuid())
+  name       String
+  balance    Int
+  photoPath  String   @default("/uploads/defaultPhoto.png") @map("photo_path")
+  target     Int
+  childId    String
+  child      Child    @relation(fields: [childId], references: [id])
+}
+
+
+model Transaction {
+  id         String   @id @default(uuid())
+  childId    String
+  amount     Int      // отрицательное — трата, положительное — пополнение
+  category   String
+  createdAt  DateTime @default(now()) @map("created_at")
+  description String?
+  child     Child    @relation(fields: [childId], references: [id])
+}
+
+model Mission {
+  id           String          @id @default(uuid())
+  childId      String
+  parentId     String
+  title        String
+  description  String?
+  target       Int             // цель в копейках (например, накопить)
+  reward       Int             // вознаграждение, которое получит ребёнок при выполнении
+  progress     Int             @default(0)
+  status       MissionStatus   // PENDING, COMPLETED, EXPIRED
+  reportType   ReportType      // TEXT or PHOTO
+  reportText   String?
+  reportPhoto  String?         @map("report_photo")
+  approved     Boolean?        // подтверждение родителем
+  createdAt    DateTime        @default(now()) @map("created_at")
+
+  child        Child           @relation(fields: [childId], references: [id])
+  parent   User   @relation("ParentMissions", fields: [parentId], references: [id])
+}
+
+model Limit {
+  id           String    @id @default(uuid())
+  childId      String
+  limitType    LimitType // TRANSFER, WITHDRAWAL, CARD_PURCHASE
+  monthlyLimit Int       // месячный лимит в копейках
+  currentSpent Int       @default(0) // текущие траты за месяц в копейках
+  resetDate    DateTime  @default(now()) @map("reset_date") // дата последнего сброса (для отслеживания месяца)
+  isActive     Boolean   @default(true) @map("is_active") // активен ли лимит
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  
+  child        Child     @relation(fields: [childId], references: [id], onDelete: Cascade)
+  
+  @@unique([childId, limitType]) // у каждого ребенка может быть только один лимит каждого типа
+}
+
+model AiResponse {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  text      String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("ai_response")
+}

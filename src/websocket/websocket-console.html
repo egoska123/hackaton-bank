@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KidBank WebSocket Console</title>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 20px;
+        }
+        
+        .console-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #00ff00;
+            padding-bottom: 10px;
+        }
+        
+        .connection-panel {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #00ffff;
+        }
+        
+        .input-group input, .input-group textarea {
+            width: 100%;
+            padding: 8px;
+            background: #1a1a1a;
+            border: 1px solid #666;
+            color: #00ff00;
+            border-radius: 3px;
+        }
+        
+        .btn {
+            background: #004400;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 3px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .btn:hover {
+            background: #006600;
+        }
+        
+        .btn.danger {
+            background: #440000;
+            border-color: #ff0000;
+            color: #ff0000;
+        }
+        
+        .btn.danger:hover {
+            background: #660000;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            margin-left: 10px;
+        }
+        
+        .status.connected {
+            background: #004400;
+            color: #00ff00;
+        }
+        
+        .status.disconnected {
+            background: #440000;
+            color: #ff0000;
+        }
+        
+        .console-output {
+            background: #000;
+            border: 1px solid #333;
+            height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 3px 0;
+        }
+        
+        .log-entry.info { color: #00ff00; }
+        .log-entry.warning { color: #ffff00; }
+        .log-entry.error { color: #ff0000; }
+        .log-entry.success { color: #00ffff; }
+        
+        .timestamp {
+            color: #666;
+            font-size: 10px;
+        }
+        
+        .actions-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .panel {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        
+        .panel h3 {
+            color: #00ffff;
+            margin-bottom: 15px;
+        }
+        
+        .stats {
+            background: #1a2a1a;
+            border: 1px solid #004400;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+            background: #2a2a2a;
+            border-radius: 3px;
+        }
+        
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #00ff00;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="console-container">
+        <div class="header">
+            <h1>🚀 KidBank WebSocket Console</h1>
+            <p>Тестовая консоль для отладки WebSocket соединения</p>
+        </div>
+
+        <div class="stats">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="message-count">0</div>
+                    <div class="stat-label">Сообщений</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="advice-count">0</div>
+                    <div class="stat-label">Советов</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="connection-time">00:00</div>
+                    <div class="stat-label">Время подключения</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="ping-time">-</div>
+                    <div class="stat-label">Пинг (мс)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="connection-panel">
+            <div class="input-group">
+                <label for="jwt-token">JWT Token:</label>
+                <input type="text" id="jwt-token" placeholder="Введите ваш JWT токен...">
+            </div>
+            <div class="input-group">
+                <label for="server-url">Server URL:</label>
+                                 <input type="text" id="server-url" value="http://localhost:4200" placeholder="http://localhost:4200">
+            </div>
+            <button class="btn" onclick="connect()">Подключиться</button>
+            <button class="btn danger" onclick="disconnect()">Отключиться</button>
+            <span class="status disconnected" id="connection-status">Отключен</span>
+        </div>
+
+        <div class="console-output" id="console-output">
+            <div class="log-entry info">
+                <span class="timestamp">[00:00:00]</span> 
+                Консоль WebSocket готова к работе. Введите JWT токен и нажмите "Подключиться".
+            </div>
+        </div>
+
+        <div class="actions-panel">
+            <div class="panel">
+                <h3>🏓 Тестовые команды</h3>
+                                 <button class="btn" onclick="checkToken()">Проверить токен</button>
+                 <button class="btn" onclick="sendPing()">Отправить Ping</button>
+                 <button class="btn" onclick="sendTestMessage()">Тестовое сообщение</button>
+                 <button class="btn" onclick="getConnectedUsers()">Список пользователей</button>
+                 <button class="btn" onclick="clearConsole()">Очистить консоль</button>
+            </div>
+
+            <div class="panel">
+                <h3>💡 Отправить совет</h3>
+                <div class="input-group">
+                    <label for="advice-text">Текст совета:</label>
+                    <textarea id="advice-text" rows="3" placeholder="Введите совет для отправки..."></textarea>
+                </div>
+                <div class="input-group">
+                    <label for="target-user">ID пользователя (необязательно):</label>
+                    <input type="text" id="target-user" placeholder="Если пусто - отправится вам">
+                </div>
+                <button class="btn" onclick="sendAdvice()">Отправить совет</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let socket = null;
+        let messageCount = 0;
+        let adviceCount = 0;
+        let connectionStartTime = null;
+        let connectionInterval = null;
+        let pingStartTime = null;
+
+        function log(message, type = 'info') {
+            const output = document.getElementById('console-output');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${message}`;
+            output.appendChild(entry);
+            output.scrollTop = output.scrollHeight;
+            
+            messageCount++;
+            document.getElementById('message-count').textContent = messageCount;
+        }
+
+        function updateConnectionTime() {
+            if (connectionStartTime) {
+                const elapsed = Math.floor((Date.now() - connectionStartTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                document.getElementById('connection-time').textContent = 
+                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }
+
+        function connect() {
+            const token = document.getElementById('jwt-token').value.trim();
+            const serverUrl = document.getElementById('server-url').value.trim();
+
+            if (!token) {
+                log('❌ Ошибка: JWT токен не указан', 'error');
+                return;
+            }
+
+            if (socket) {
+                socket.disconnect();
+            }
+
+            log(`🔄 Подключение к ${serverUrl}...`, 'info');
+
+                         socket = io(serverUrl, {
+                 auth: { token: token },
+                 query: { token: token },
+                 extraHeaders: {
+                     'Authorization': `Bearer ${token}`
+                 }
+             });
+
+            socket.on('connect', () => {
+                log('✅ Подключен к WebSocket серверу', 'success');
+                document.getElementById('connection-status').textContent = 'Подключен';
+                document.getElementById('connection-status').className = 'status connected';
+                connectionStartTime = Date.now();
+                connectionInterval = setInterval(updateConnectionTime, 1000);
+            });
+
+            socket.on('connected', (data) => {
+                log(`🎉 Аутентификация успешна: ${data.message} (User: ${data.userId})`, 'success');
+            });
+
+            socket.on('new_advice', (data) => {
+                adviceCount++;
+                document.getElementById('advice-count').textContent = adviceCount;
+                log(`💡 Новый совет: "${data.advice}" (${data.timestamp})`, 'warning');
+            });
+
+            socket.on('pong', (data) => {
+                const pingTime = pingStartTime ? Date.now() - pingStartTime : 0;
+                document.getElementById('ping-time').textContent = pingTime;
+                log(`🏓 Pong получен: ${data.message} (${pingTime}ms)`, 'info');
+            });
+
+            socket.on('disconnect', (reason) => {
+                log(`❌ Отключен от сервера: ${reason}`, 'error');
+                document.getElementById('connection-status').textContent = 'Отключен';
+                document.getElementById('connection-status').className = 'status disconnected';
+                if (connectionInterval) {
+                    clearInterval(connectionInterval);
+                    connectionInterval = null;
+                }
+                connectionStartTime = null;
+            });
+
+                         socket.on('connect_error', (error) => {
+                 log(`❌ Ошибка подключения: ${error.message}`, 'error');
+             });
+
+             socket.on('auth_error', (data) => {
+                 log(`🔐 Ошибка аутентификации: ${data.error}`, 'error');
+                 if (data.details) {
+                     log(`📋 Детали: ${data.details}`, 'error');
+                 }
+             });
+        }
+
+        function disconnect() {
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+                log('🔌 Отключение по запросу пользователя', 'info');
+            }
+        }
+
+        function sendPing() {
+            if (!socket || !socket.connected) {
+                log('❌ Не подключен к серверу', 'error');
+                return;
+            }
+            pingStartTime = Date.now();
+            socket.emit('ping');
+            log('🏓 Ping отправлен...', 'info');
+        }
+
+        function sendTestMessage() {
+            if (!socket || !socket.connected) {
+                log('❌ Не подключен к серверу', 'error');
+                return;
+            }
+            const testData = { test: true, timestamp: new Date().toISOString() };
+            socket.emit('test', testData);
+            log(`📤 Тестовое сообщение отправлено: ${JSON.stringify(testData)}`, 'info');
+        }
+
+                 async function checkToken() {
+             const token = document.getElementById('jwt-token').value.trim();
+             if (!token) {
+                 log('❌ JWT токен не указан', 'error');
+                 return;
+             }
+
+             try {
+                 const response = await fetch('http://localhost:4200/websocket/check-token', {
+                     headers: {
+                         'Authorization': `Bearer ${token}`
+                     }
+                 });
+                 if (response.ok) {
+                     const data = await response.json();
+                     log(`✅ Токен валиден! User: ${data.email} (${data.userId})`, 'success');
+                     log(`📝 Role: ${data.role}`, 'info');
+                 } else {
+                     log(`❌ Токен невалиден! Status: ${response.status}`, 'error');
+                 }
+             } catch (error) {
+                 log(`❌ Ошибка проверки токена: ${error.message}`, 'error');
+             }
+         }
+
+         async function getConnectedUsers() {
+             const token = document.getElementById('jwt-token').value.trim();
+             if (!token) {
+                 log('❌ JWT токен не указан', 'error');
+                 return;
+             }
+
+             try {
+                 const response = await fetch('http://localhost:4200/websocket/connected-users', {
+                     headers: {
+                         'Authorization': `Bearer ${token}`
+                     }
+                 });
+                 const data = await response.json();
+                 log(`👥 Подключенных пользователей: ${data.totalConnected}`, 'success');
+                 log(`📋 Список: ${data.connectedUsers.join(', ') || 'никого'}`, 'info');
+             } catch (error) {
+                 log(`❌ Ошибка получения списка пользователей: ${error.message}`, 'error');
+             }
+         }
+
+        async function sendAdvice() {
+            const token = document.getElementById('jwt-token').value.trim();
+            const advice = document.getElementById('advice-text').value.trim();
+            const targetUser = document.getElementById('target-user').value.trim();
+
+            if (!token) {
+                log('❌ JWT токен не указан', 'error');
+                return;
+            }
+
+            if (!advice) {
+                log('❌ Текст совета не указан', 'error');
+                return;
+            }
+
+            const body = { advice };
+            if (targetUser) {
+                body.targetUserId = targetUser;
+            }
+
+                         try {
+                 const response = await fetch('http://localhost:4200/websocket/send-test-advice', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    log(`✅ Совет отправлен пользователю ${data.targetUserId}`, 'success');
+                    document.getElementById('advice-text').value = '';
+                } else {
+                    log(`⚠️ ${data.message}`, 'warning');
+                }
+            } catch (error) {
+                log(`❌ Ошибка отправки совета: ${error.message}`, 'error');
+            }
+        }
+
+        function clearConsole() {
+            document.getElementById('console-output').innerHTML = '';
+            messageCount = 0;
+            adviceCount = 0;
+            document.getElementById('message-count').textContent = '0';
+            document.getElementById('advice-count').textContent = '0';
+            log('🧹 Консоль очищена', 'info');
+        }
+
+        // Автоматическое сохранение токена
+        document.getElementById('jwt-token').addEventListener('input', function() {
+            localStorage.setItem('ws-console-token', this.value);
+        });
+
+        // Загрузка сохраненного токена
+        window.addEventListener('load', function() {
+            const savedToken = localStorage.getItem('ws-console-token');
+            if (savedToken) {
+                document.getElementById('jwt-token').value = savedToken;
+            }
+        });
+
+        // Автоматический ping каждые 30 секунд
+        setInterval(() => {
+            if (socket && socket.connected) {
+                sendPing();
+            }
+        }, 30000);
+    </script>
+</body>
+</html> 
