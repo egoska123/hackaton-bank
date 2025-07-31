@@ -122,8 +122,8 @@ const ParentPiggyBankScreen = observer(({ onBackToRoleSelection, onBackToMain }:
               <PiggyBankCard
                 key={bank.id}
                 title={bank.name}
-                savedAmount={piggyBankStore.kopeksToRubles(bank.balance)}
-                targetAmount={piggyBankStore.kopeksToRubles(bank.target)}
+                savedAmount={Math.round(bank.balance / 100)}
+                targetAmount={Math.round(bank.target / 100)}
                 imageSource={require('../../../assets/images/image 23.png')} // Используем дефолтное изображение
                 onPress={() => handlePiggyBankPress(bank)}
               />
