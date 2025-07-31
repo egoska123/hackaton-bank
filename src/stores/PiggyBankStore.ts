@@ -1,6 +1,5 @@
 import { makeAutoObservable } from 'mobx';
 import { piggybankApi, PiggyBank, PiggyBankResponse } from '../utils/piggybankApi';
-import { kopeksToRubles as convertKopeksToRubles, rublesToKopeks as convertRublesToKopeks } from '../utils/currencyUtils';
 
 export class PiggyBankStore {
   piggyBanks: PiggyBank[] = [];
@@ -43,19 +42,14 @@ export class PiggyBankStore {
    */
   async createPiggyBank(data: {
     name: string;
-    target: number; // в рублях
+    target: number;
     photoPath?: string;
   }) {
     this.setLoading(true);
     this.setError(null);
 
     try {
-      // Конвертируем рубли в копейки для API
-      const targetInKopeks = this.rublesToKopeks(data.target);
-      const newPiggyBank = await piggybankApi.createPiggyBank({
-        ...data,
-        target: targetInKopeks
-      });
+      const newPiggyBank = await piggybankApi.createPiggyBank(data);
       this.addPiggyBank(newPiggyBank);
       this.setTotalPiggyBanks(this.totalPiggyBanks + 1);
       
@@ -75,20 +69,14 @@ export class PiggyBankStore {
    */
   async updatePiggyBank(id: string, data: {
     name?: string;
-    target?: number; // в рублях
+    target?: number;
     photoPath?: string;
   }) {
     this.setLoading(true);
     this.setError(null);
 
     try {
-      // Конвертируем рубли в копейки для API, если передана цель
-      const apiData = { ...data };
-      if (data.target !== undefined) {
-        apiData.target = this.rublesToKopeks(data.target);
-      }
-      
-      const updatedPiggyBank = await piggybankApi.updatePiggyBank(id, apiData);
+      const updatedPiggyBank = await piggybankApi.updatePiggyBank(id, data);
       this.updatePiggyBankInList(updatedPiggyBank);
       
       console.log('PiggyBank updated successfully:', updatedPiggyBank);
@@ -127,14 +115,12 @@ export class PiggyBankStore {
   /**
    * Пополнить копилку
    */
-  async topUpPiggyBank(id: string, amount: number) { // amount в рублях
+  async topUpPiggyBank(id: string, amount: number) {
     this.setLoading(true);
     this.setError(null);
 
     try {
-      // Конвертируем рубли в копейки для API
-      const amountInKopeks = this.rublesToKopeks(amount);
-      const updatedPiggyBank = await piggybankApi.topUpPiggyBank(id, amountInKopeks);
+      const updatedPiggyBank = await piggybankApi.topUpPiggyBank(id, amount);
       this.updatePiggyBankInList(updatedPiggyBank);
       
       console.log('PiggyBank topped up successfully:', updatedPiggyBank);
@@ -156,33 +142,17 @@ export class PiggyBankStore {
   }
 
   /**
-   * Конвертировать копейки в рубли
-   */
-  kopeksToRubles(kopeks: number): number {
-    return convertKopeksToRubles(kopeks);
-  }
-
-  /**
-   * Конвертировать рубли в копейки
-   */
-  rublesToKopeks(rubles: number): number {
-    return convertRublesToKopeks(rubles);
-  }
-
-  /**
-   * Получить общий баланс всех копилок (в рублях)
+   * Получить общий баланс всех копилок
    */
   get totalBalance(): number {
-    const balanceInKopeks = this.piggyBanks.reduce((total, piggyBank) => total + piggyBank.balance, 0);
-    return convertKopeksToRubles(balanceInKopeks);
+    return this.piggyBanks.reduce((total, piggyBank) => total + piggyBank.balance, 0);
   }
 
   /**
-   * Получить общую цель всех копилок (в рублях)
+   * Получить общую цель всех копилок
    */
   get totalTarget(): number {
-    const targetInKopeks = this.piggyBanks.reduce((total, piggyBank) => total + piggyBank.target, 0);
-    return convertKopeksToRubles(targetInKopeks);
+    return this.piggyBanks.reduce((total, piggyBank) => total + piggyBank.target, 0);
   }
 
   /**

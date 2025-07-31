@@ -10,7 +10,7 @@ function parseAdviceText(adviceText) {
       return parsed.answer;
     }
     
-    // Если нет answer, но есть другие поля, возвращаем весь объект как строку
+    // Если нет поля answer, возвращаем весь объект как строку
     return JSON.stringify(parsed);
   } catch (error) {
     // Если не удалось распарсить JSON, возвращаем текст как есть
@@ -18,51 +18,46 @@ function parseAdviceText(adviceText) {
   }
 }
 
-// Тестовые данные
-const testCases = [
-  // JSON с полем answer
-  {
-    input: '{"agent":"piggy","answer":"Молодец! У тебя уже 255 рублей в копилке на велосипед, ты стал на -5 рублей ближе к своей цели в 500 рублей! Продолжай в том же духе, и скоро у тебя будет новый велосипед!","status":"позитивный"}',
-    expected: "Молодец! У тебя уже 255 рублей в копилке на велосипед, ты стал на -5 рублей ближе к своей цели в 500 рублей! Продолжай в том же духе, и скоро у тебя будет новый велосипед!"
-  },
-  // Простой текст
-  {
-    input: "Простой совет от Тоши",
-    expected: "Простой совет от Тоши"
-  },
-  // JSON без поля answer
-  {
-    input: '{"agent":"piggy","status":"позитивный"}',
-    expected: '{"agent":"piggy","status":"позитивный"}'
-  },
-  // Пустая строка
-  {
-    input: "",
-    expected: ""
-  }
-];
+// Тестовые случаи
 
-// Запускаем тесты
-console.log("🧪 Тестирование парсинга советов:\n");
+// 1. JSON с полем answer
+const jsonAdvice = '{"agent":"piggy","answer":"Молодец! У тебя уже 255 рублей в копилке на велосипед, ты стал на -5 рублей ближе к своей цели в 500 рублей! Продолжай в том же духе, и скоро у тебя будет новый велосипед!","status":"позитивный"}';
 
-testCases.forEach((testCase, index) => {
-  const result = parseAdviceText(testCase.input);
-  const isSuccess = result === testCase.expected;
-  
-  console.log(`Тест ${index + 1}: ${isSuccess ? '✅' : '❌'}`);
-  console.log(`Входные данные: ${testCase.input}`);
-  console.log(`Ожидаемый результат: ${testCase.expected}`);
-  console.log(`Полученный результат: ${result}`);
-  console.log(`---`);
-});
+console.log('=== Тест 1: JSON с полем answer ===');
+console.log('Входные данные:', jsonAdvice);
+console.log('Результат:', parseAdviceText(jsonAdvice));
+console.log('');
 
-console.log("🎯 Пример работы с реальными данными:");
-const realAdvice = {
-  advice: '{"agent":"piggy","answer":"Молодец! У тебя уже 255 рублей в копилке на велосипед, ты стал на -5 рублей ближе к своей цели в 500 рублей! Продолжай в том же духе, и скоро у тебя будет новый велосипед!","status":"позитивный"}',
-  timestamp: "2025-07-31T05:31:58.445Z"
-};
+// 2. Простой текст
+const simpleText = 'Простой совет без JSON';
 
-const parsedAdvice = parseAdviceText(realAdvice.advice);
-console.log(`Исходный JSON: ${realAdvice.advice}`);
-console.log(`Извлеченный текст: ${parsedAdvice}`);
-console.log(`Обрезанный для уведомления: ${parsedAdvice.length > 80 ? parsedAdvice.substring(0, 80) + '...' : parsedAdvice}`); 
+console.log('=== Тест 2: Простой текст ===');
+console.log('Входные данные:', simpleText);
+console.log('Результат:', parseAdviceText(simpleText));
+console.log('');
+
+// 3. JSON без поля answer
+const jsonWithoutAnswer = '{"agent":"piggy","status":"позитивный","message":"Тестовое сообщение"}';
+
+console.log('=== Тест 3: JSON без поля answer ===');
+console.log('Входные данные:', jsonWithoutAnswer);
+console.log('Результат:', parseAdviceText(jsonWithoutAnswer));
+console.log('');
+
+// 4. Некорректный JSON
+const invalidJson = '{"agent":"piggy","answer":"Тест",}';
+
+console.log('=== Тест 4: Некорректный JSON ===');
+console.log('Входные данные:', invalidJson);
+console.log('Результат:', parseAdviceText(invalidJson));
+console.log('');
+
+// 5. Пустая строка
+const emptyString = '';
+
+console.log('=== Тест 5: Пустая строка ===');
+console.log('Входные данные:', emptyString);
+console.log('Результат:', parseAdviceText(emptyString));
+console.log('');
+
+console.log('=== Все тесты завершены ==='); 

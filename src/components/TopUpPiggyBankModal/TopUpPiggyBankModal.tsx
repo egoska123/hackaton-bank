@@ -3,7 +3,6 @@ import { View, Text, TextInput, TouchableOpacity, Image } from 'react-native';
 import Modal from 'react-native-modal';
 import { styles } from './TopUpPiggyBankModal.styles';
 import { PiggyBank } from '../../utils/piggybankApi';
-import { kopeksToRubles, formatRubles } from '../../utils/currencyUtils';
 
 interface Props {
   isVisible: boolean;
@@ -65,8 +64,8 @@ const TopUpPiggyBankModal: React.FC<Props> = ({
             <Text style={styles.piggyBankLabel}>Копилка</Text>
             <Text style={styles.piggyBankTitle}>{piggyBank.name}</Text>
             <Text style={styles.piggyBankAmount}>
-              <Text style={styles.savedAmount}>{kopeksToRubles(piggyBank.balance)}</Text> 
-              <Text style={styles.targetAmount}>{formatRubles(kopeksToRubles(piggyBank.target))}</Text>
+              <Text style={styles.savedAmount}>{piggyBank.balance}</Text> 
+              <Text style={styles.targetAmount}>₽ из {piggyBank.target} ₽</Text>
             </Text>
             <View style={styles.progressBar}>
               <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />

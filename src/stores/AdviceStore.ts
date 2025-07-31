@@ -44,7 +44,7 @@ export class AdviceStore {
 
   setCurrentAdvice(advice: AdviceData | null) {
     if (advice) {
-      // Парсим совет для извлечения текста
+      // Парсим совет для извлечения поля answer из JSON
       const parsedAdvice = this.parseAdviceText(advice.advice);
       this.currentAdvice = {
         ...advice,
@@ -68,7 +68,7 @@ export class AdviceStore {
         return parsed.answer;
       }
       
-      // Если нет answer, но есть другие поля, возвращаем весь объект как строку
+      // Если нет поля answer, возвращаем весь объект как строку
       return JSON.stringify(parsed);
     } catch (error) {
       // Если не удалось распарсить JSON, возвращаем текст как есть

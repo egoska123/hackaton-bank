@@ -161,4 +161,34 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  sourceText: {
+    fontSize: 10,
+    color: '#999999',
+    marginTop: 2,
+    fontStyle: 'italic',
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginBottom: 16,
+  },
+  loadingText: {
+    fontSize: 14,
+    color: '#666666',
+    marginLeft: 8,
+    fontStyle: 'italic',
+  },
+  errorContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginBottom: 16,
+  },
+  errorText: {
+    fontSize: 14,
+    color: '#FF3B30',
+    textAlign: 'center',
+  },
 });

@@ -141,8 +141,8 @@ const PiggyBankScreen = observer(() => {
               <PiggyBankCard
                 key={bank.id}
                 title={bank.name}
-                savedAmount={piggyBankStore.kopeksToRubles(bank.balance)}
-                targetAmount={piggyBankStore.kopeksToRubles(bank.target)}
+                savedAmount={bank.balance}
+                targetAmount={bank.target}
                 imageSource={require('../../../assets/images/image 23.png')} // Используем дефолтное изображение
                 onPress={() => handlePiggyBankPress(bank)}
               />

@@ -9,10 +9,13 @@ import {
   Platform,
   Image,
   SafeAreaView,
+  ActivityIndicator,
 } from 'react-native';
+import { observer } from 'mobx-react-lite';
 import { styles } from './ChatScreen.styles';
 import ArrowRightIcon from '../../../assets/icons/ArrowRightIcon';
 import ArrowLeftIcon from '../../../assets/icons/ArrowLeftIcon';
+import { chatStore } from '../../stores/ChatStore';
 
 interface Message {
   id: string;
@@ -30,179 +33,36 @@ interface Props {
   };
 }
 
-const ChatScreen: React.FC<Props> = ({ onClose, initialAdvice }) => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      text: 'Привет! Я твой виртуальный друг Тоша, я живу в твоём приложении. Чем могу помочь? С радостью тебе помогу!',
-      isUser: false,
-      timestamp: new Date(),
-    },
-    {
-      id: '2',
-      text: 'Привет, Тоша! Как дела?',
-      isUser: true,
-      timestamp: new Date(),
-    },
-    {
-      id: '3',
-      text: 'Отлично! Что планируешь делать сегодня?',
-      isUser: false,
-      timestamp: new Date(),
-    },
-    {
-      id: '4',
-      text: 'Хочу накопить на новую гитару',
-      isUser: true,
-      timestamp: new Date(),
-    },
-    {
-      id: '5',
-      text: 'Классная цель! Гитара - это здорово. Сколько уже накопил?',
-      isUser: false,
-      timestamp: new Date(),
-    },
-    {
-      id: '6',
-      text: 'Пока только 1000 рублей из 15000',
-      isUser: true,
-      timestamp: new Date(),
-    },
-    {
-      id: '7',
-      text: 'Хорошее начало! Главное не останавливаться. Каждый рубль приближает тебя к мечте!',
-      isUser: false,
-      timestamp: new Date(),
-    },
-    {
-      id: '8',
-      text: 'Спасибо за поддержку! А как лучше копить деньги?',
-      isUser: true,
-      timestamp: new Date(),
-    },
-    {
-      id: '9',
-      text: 'Есть несколько способов: откладывать определенную сумму каждый день, собирать мелочь, экономить на ненужных покупках. Главное - регулярность!',
-      isUser: false,
-      timestamp: new Date(),
-    },
-    {
-      id: '10',
-      text: 'Понятно! А сколько времени нужно чтобы накопить 15000?',
-      isUser: true,
-      timestamp: new Date(),
-    },
-    {
-      id: '11',
-      text: 'Если откладывать по 500 рублей в месяц, то около 2.5 лет. Но если увеличить сумму или найти дополнительные источники дохода, можно быстрее!',
-      isUser: false,
-      timestamp: new Date(),
-    },
-    {
-      id: '12',
-      text: 'Хорошая идея! Буду стараться откладывать больше',
-      isUser: true,
-      timestamp: new Date(),
-    },
-    {
-      id: '13',
-      text: 'Отлично! Я верю в тебя. Помни - каждая гитара начинается с первого рубля в копилке! 🎸',
-      isUser: false,
-      timestamp: new Date(),
-    },
-  ]);
+const ChatScreen = observer(({ onClose, initialAdvice }: Props) => {
   const [inputText, setInputText] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Добавляем начальный совет, если он есть
   useEffect(() => {
     if (initialAdvice) {
-      const adviceMessage: Message = {
-        id: Date.now().toString(),
-        text: initialAdvice.advice,
-        isUser: false,
-        timestamp: new Date(initialAdvice.timestamp),
-      };
-      setMessages(prev => [...prev, adviceMessage]);
+      chatStore.addAIAdvice(initialAdvice.advice, initialAdvice.timestamp);
     }
   }, [initialAdvice]);
 
-  // Автоматические ответы Тоши
-  const getToshaResponse = (userMessage: string): string => {
-    const lowerMessage = userMessage.toLowerCase();
-    
-    if (lowerMessage.includes('привет') || lowerMessage.includes('здравствуй')) {
-      return 'Привет! Рад тебя видеть! Как дела?';
-    }
-    
-    if (lowerMessage.includes('как дела') || lowerMessage.includes('как ты')) {
-      return 'У меня всё отлично! Готов помочь тебе с любыми вопросами о накоплениях и финансах!';
-    }
-    
-    if (lowerMessage.includes('спасибо') || lowerMessage.includes('благодар')) {
-      return 'Всегда пожалуйста! Я здесь, чтобы помочь тебе достичь финансовых целей! 😊';
-    }
-    
-    if (lowerMessage.includes('копить') || lowerMessage.includes('накопить') || lowerMessage.includes('сбережения')) {
-      return 'Отличный вопрос! Главное в накоплениях - это регулярность. Даже небольшие суммы, отложенные постоянно, дают отличный результат!';
-    }
-    
-    if (lowerMessage.includes('цель') || lowerMessage.includes('мечта')) {
-      return 'Здорово, что у тебя есть цель! Это очень мотивирует. Расскажи подробнее, на что копишь?';
-    }
-    
-    if (lowerMessage.includes('деньги') || lowerMessage.includes('рубл')) {
-      return 'Деньги - это инструмент для достижения целей. Важно научиться ими правильно управлять!';
-    }
-    
-    // Случайные ответы для остальных случаев
-    const randomResponses = [
-      'Интересно! Расскажи больше об этом.',
-      'Понимаю тебя! А что ты думаешь по этому поводу?',
-      'Хороший вопрос! Давай разберем это вместе.',
-      'Это важная тема! Как ты к этому относишься?',
-      'Замечательно! Продолжай рассказывать.',
-      'Я всегда готов выслушать и помочь советом! 💪',
-      'Отличная мысль! А какие у тебя планы на этот счет?',
-    ];
-    
-    return randomResponses[Math.floor(Math.random() * randomResponses.length)];
-  };
+
 
   // Отправка сообщения
   const sendMessage = () => {
-    if (!inputText.trim()) return;
+    if (!inputText.trim() || chatStore.isLoading) return;
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      text: inputText.trim(),
-      isUser: true,
-      timestamp: new Date(),
-    };
-
-    setMessages(prev => [...prev, userMessage]);
+    // Добавляем сообщение пользователя через ChatStore
+    chatStore.addUserMessage(inputText.trim());
     setInputText('');
-
-    // Автоматический ответ от Тоши
-    setTimeout(() => {
-      const toshaResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        text: getToshaResponse(inputText.trim()),
-        isUser: false,
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, toshaResponse]);
-    }, 1000 + Math.random() * 1000); // 1-2 секунды задержки
   };
 
   // Автоскролл к последнему сообщению
   useEffect(() => {
-    if (scrollViewRef.current && messages.length > 0) {
+    if (scrollViewRef.current && chatStore.messages.length > 0) {
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 100);
     }
-  }, [messages]);
+  }, [chatStore.messages]);
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString('ru-RU', { 
@@ -245,7 +105,7 @@ const ChatScreen: React.FC<Props> = ({ onClose, initialAdvice }) => {
           showsVerticalScrollIndicator={true}
           scrollEnabled={true}
         >
-          {messages.map((message) => (
+          {chatStore.messages.map((message) => (
             <View
               key={message.id}
               style={[
@@ -283,9 +143,29 @@ const ChatScreen: React.FC<Props> = ({ onClose, initialAdvice }) => {
                 >
                   {formatTime(message.timestamp)}
                 </Text>
+                {message.source && (
+                  <Text style={styles.sourceText}>
+                    {message.source === 'ai' ? '🤖 AI' : '📝 Mock'}
+                  </Text>
+                )}
               </View>
             </View>
           ))}
+          
+          {/* Индикатор загрузки */}
+          {chatStore.isLoading && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color="#007AFF" />
+              <Text style={styles.loadingText}>Тоша печатает...</Text>
+            </View>
+          )}
+          
+          {/* Ошибка */}
+          {chatStore.error && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{chatStore.error}</Text>
+            </View>
+          )}
         </ScrollView>
 
         {/* Поле ввода */}
@@ -305,19 +185,23 @@ const ChatScreen: React.FC<Props> = ({ onClose, initialAdvice }) => {
           <TouchableOpacity
             style={[
               styles.sendButton,
-              { opacity: inputText.trim() ? 1 : 0.5 }
+              { opacity: inputText.trim() && !chatStore.isLoading ? 1 : 0.5 }
             ]}
             onPress={sendMessage}
-            disabled={!inputText.trim()}
+            disabled={!inputText.trim() || chatStore.isLoading}
           >
-            <View style={{ transform: [{ rotate: '-90deg' }] }}>
-              <ArrowRightIcon width={15} height={14} />
-            </View>
+            {chatStore.isLoading ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <View style={{ transform: [{ rotate: '-90deg' }] }}>
+                <ArrowRightIcon width={15} height={14} />
+              </View>
+            )}
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
-};
+})
 
 export default ChatScreen;
